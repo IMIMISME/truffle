@@ -3,6 +3,7 @@
 
 declare namespace DataModel {
   type IBytecode = any;
+  type IBytecodesAddPayload = any;
   type ICompilationInput = any;
   type ICompilationSourceContractInput = any;
   type ICompilationsAddPayload = any;
