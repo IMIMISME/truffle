@@ -2,8 +2,15 @@
 // graphql typescript definitions
 
 declare namespace DataModel {
+  type IBytecode = any;
+  type ICompilationInput = any;
+  type ICompilationSourceContractInput = any;
+  type ICompilationsAddPayload = any;
+  type ICompiler = any;
+  type ICompilerInput = any;
   type IInstruction = any;
   type ISource = any;
+  type ISourceInput = any;
   type ISourceRange = any;
 
   interface IWorkspaceQuery {
