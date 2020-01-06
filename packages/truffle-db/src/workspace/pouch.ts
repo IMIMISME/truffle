@@ -9,6 +9,11 @@ import pouchdbDebug from "pouchdb-debug";
 import { soliditySha3 } from "web3-utils";
 import jsonStableStringify from "json-stable-stringify";
 
+let PouchDBWebSQLAdapter;
+try {
+  PouchDBWebSQLAdapter = require("pouchdb-adapter-node-websql");
+} catch (_) {}
+
 type PouchApi = {
   bytecodes: PouchDB.Database;
   compilations: PouchDB.Database;
@@ -47,6 +52,7 @@ const resources = {
 
 export class Workspace {
   public dbApi: PouchApi;
+  private adapter: string;
 
   getSavePath(workingDirectory: string, resource: string): string {
     const savePath = path.join(workingDirectory, ".db", resource);
@@ -64,8 +70,14 @@ export class Workspace {
     CoreLevelPouch.call(this, _opts, callback);
   }
 
-  adapter(PouchDB: any): any {
-    PouchDB.adapter("jsondown", this.jsondownpouch, true);
+  adapt(PouchDB: any): any {
+    if (PouchDBWebSQLAdapter) {
+      PouchDB.plugin(PouchDBWebSQLAdapter);
+      this.adapter = "websql";
+    } else {
+      PouchDB.adapter("jsondown", this.jsondownpouch, true);
+      this.adapter = "jsondown";
+    }
   }
 
   private ready: Promise<void>;
@@ -77,12 +89,12 @@ export class Workspace {
     this.jsondownpouch["valid"] = () => true;
     this.jsondownpouch["use_prefix"] = false;
 
-    this.adapter(PouchDB);
+    this.adapt(PouchDB);
 
     this.dbApi = {} as PouchApi;
     for (let resource of Object.keys(resources)) {
       let savePath = this.getSavePath(workingDirectory, resource);
-      this.dbApi[resource] = new PouchDB(savePath, { adapter: "jsondown" });
+      this.dbApi[resource] = new PouchDB(savePath, { adapter: this.adapter });
     }
     this.ready = this.initialize();
   }
